@@ -5,7 +5,7 @@ This is a Terraform module that enables authentication to Google Cloud Platform 
 ## Usage
 
 ```hcl
-module "github-oidc" {
+module "github_oidc" {
   source  = "otaaaa/github-oidc/google"
 
   project_id  = "foo"

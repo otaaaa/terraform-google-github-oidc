@@ -5,7 +5,7 @@ resource "google_iam_workload_identity_pool" "github_oidc" {
 resource "google_iam_workload_identity_pool_provider" "github_oidc" {
   workload_identity_pool_id          = google_iam_workload_identity_pool.github_oidc.workload_identity_pool_id
   workload_identity_pool_provider_id = var.provider_id
-  attribute_condition                = "assertion.repository_owner == '${var.github_user}'"
+  attribute_condition                = "assertion.repository_owner == '${var.github_owner}'"
   attribute_mapping = {
     "google.subject"       = "assertion.sub"
     "attribute.actor"      = "assertion.actor"
@@ -22,7 +22,7 @@ resource "google_service_account" "github_oidc" {
 }
 
 resource "google_project_iam_member" "github_oidc" {
-  for_each = toset(var.roles)
+  for_each = var.roles
 
   project = var.project_id
   role    = each.value
@@ -30,9 +30,17 @@ resource "google_project_iam_member" "github_oidc" {
 }
 
 resource "google_service_account_iam_member" "github_oidc" {
-  for_each = toset(var.github_repositories)
+  for_each = var.github_repositories
 
   service_account_id = google_service_account.github_oidc.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github_oidc.name}/attribute.repository/${var.github_user}/${each.value}"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github_oidc.name}/attribute.repository/${var.github_owner}/${each.value}"
+}
+
+resource "google_service_account_iam_member" "github_oidc_impersonate" {
+  for_each = var.impersonate_service_accounts
+
+  service_account_id = each.value
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.github_oidc.email}"
 }

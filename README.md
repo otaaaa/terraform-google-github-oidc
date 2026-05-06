@@ -16,7 +16,10 @@ module "github_oidc" {
     "roles/secretmanager.secretAccessor",
     "roles/storage.admin",
   ]
-  github_user         = "otaaaa"
+  github_owner        = "otaaaa"
   github_repositories = ["foo"]
+  impersonate_service_accounts = [
+    "projects/foo/serviceAccounts/run-invoker@foo.iam.gserviceaccount.com",
+  ]
 }
 ```
